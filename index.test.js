@@ -129,22 +129,52 @@ it('processes comma inside', function () {
     'a .one, a .two, b .one, b .two {}')
 })
 
-it('moves comment with rule', function () {
+it('does NOT move comments with rule', function () {
   return run(
     'a { /*B*/ b {} }',
-    '/*B*/ a b {}')
+    'a { /*B*/ } a b {}')
 })
 
-it('moves comment with at-rule', function () {
+it('does move Identifier comments with rule', function () {
+  return run(
+    'a { /* EXPRESSION_PLACEHOLDER_0_Identifier */ b {} }',
+    '/* EXPRESSION_PLACEHOLDER_0_Identifier */ a b {}')
+})
+
+it('does NOT move base comments with at-rule', function () {
   return run(
     'a { /*B*/ @media { one: 1 } }',
-    '/*B*/ @media {a { one: 1 } }')
+    'a { /*B*/ } @media {a { one: 1 } }')
 })
 
-it('moves comment with declaration', function () {
+it('does move Identifier comments with at-rule', function () {
+  return run(
+    'a { /* EXPRESSION_PLACEHOLDER_0_Identifier */ @media { one: 1 } }',
+    '/* EXPRESSION_PLACEHOLDER_0_Identifier */ @media {a { one: 1 } }')
+})
+
+it('does NOT move comments with declaration', function () {
   return run(
     'a { @media { /*B*/ one: 1 } }',
     '@media {a { /*B*/ one: 1 } }')
+})
+
+it('does move Identifier comments with declaration', function () {
+  return run(
+    'a { @media { /* EXPRESSION_PLACEHOLDER_0_Identifier */ one: 1 } }',
+    '@media {a { /* EXPRESSION_PLACEHOLDER_0_Identifier */ one: 1 } }')
+})
+
+it('does NOT move comments matching the placeholder pattern', function () {
+  return run(
+    'a { /* EXPRESSION_PLACEHOLDER_0 */ b {} }',
+    'a { /* EXPRESSION_PLACEHOLDER_0 */ } a b {}')
+})
+
+it('does move comments matching the Identifier pattern', function () {
+  return run(
+    'a { /* EXPRESSION_PLACEHOLDER_0_Identifier */ b {} }',
+    '/* EXPRESSION_PLACEHOLDER_0_Identifier */ a b {}')
 })
 
 it('saves order of rules', function () {
@@ -169,18 +199,4 @@ it('replaces ampersands in not selector', function () {
 
 it('handles :host selector case', function () {
   return run(':host { &(:focus) {} }', ':host(:focus) {}')
-})
-
-it('shows clear errors on missed semicolon', function () {
-  var css = 'a{\n  color: black\n  @mixin b { }\n}\n'
-  expect(function () {
-    css = postcss([plugin]).process(css, { from: undefined }).css
-  }).toThrowError('2:3: Missed semicolon')
-})
-
-it('shows clear errors on other errors', function () {
-  var css = 'a{\n  -Option/root { }\n}\n'
-  expect(function () {
-    css = postcss([plugin]).process(css, { from: undefined }).css
-  }).toThrowError(':2:3: Unexpected')
 })

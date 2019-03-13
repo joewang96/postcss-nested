@@ -1,20 +1,15 @@
 var postcss = require('postcss')
 var parser = require('postcss-selector-parser')
 
-function parse (str, rule) {
+// match on the comment text
+const PLACEHOLDER_PATTERN_IDENTIFIER = /EXPRESSION_PLACEHOLDER_(\d+)_Identifier/g;
+
+function parse (str) {
   var nodes
   var saver = parser(function (parsed) {
     nodes = parsed
   })
-  try {
-    saver.processSync(str)
-  } catch (e) {
-    if (str.indexOf(':') !== -1) {
-      throw rule ? rule.error('Missed semicolon') : e
-    } else {
-      throw rule ? rule.error(e.message) : e
-    }
-  }
+  saver.processSync(str)
   return nodes.at(0)
 }
 
@@ -41,10 +36,10 @@ function replace (nodes, parent) {
 function selectors (parent, child) {
   var result = []
   parent.selectors.forEach(function (i) {
-    var parentNode = parse(i, parent)
+    var parentNode = parse(i)
 
     child.selectors.forEach(function (j) {
-      var node = parse(j, child)
+      var node = parse(j)
       var replaced = replace(node, parentNode)
       if (!replaced) {
         node.prepend(parser.combinator({ value: ' ' }))
@@ -58,6 +53,11 @@ function selectors (parent, child) {
 
 function pickComment (comment, after) {
   if (comment && comment.type === 'comment') {
+    // if the comment is NOT an interpolated identifier then we don't mess with it
+    if (!comment.text.match(PLACEHOLDER_PATTERN_IDENTIFIER)) {
+      return after;
+    }
+    // otherwise, we move it as normal
     after.after(comment)
     return comment
   } else {

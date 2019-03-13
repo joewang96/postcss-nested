@@ -1,8 +1,8 @@
-# PostCSS Nested [![Build Status][ci-img]][ci]
+# PostCSS Nested
 
-<img align="right" width="135" height="95"
-     title="Philosopher’s stone, logo of PostCSS"
-     src="http://postcss.github.io/postcss/logo-leftp.svg">
+Fork to add custom functionality regarding comments used as interpolations in styled-components.
+
+------
 
 [PostCSS] plugin to unwrap nested rules like how Sass does it.
 
